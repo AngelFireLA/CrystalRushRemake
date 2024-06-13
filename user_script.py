@@ -52,6 +52,38 @@ class Game:
 
 game = Game()
 
+def get_ores(board):
+    ores = []
+    for y in range(board.height):
+        for x in range(board.width):
+            cell: Square = board.grid[y][x]
+            if cell and cell.ore_amount != "?" and int(cell.ore_amount) > 0:
+                ores.append((x, y))
+    return ores
+
+
+def get_all_robots_targets(robots):
+    return [robot.target for robot in robots]
+
+
+def find_next_ore(current_robot, robots, board):
+    if current_robot.current_item and current_robot.current_item.type == "radar":
+        print("on cherche minerai en tant que radar?")
+    ores = get_ores(board)
+    #sort ores according to distance with (current_robot.x, current_robot.y)
+    ores.sort(key=lambda x: game.distance((current_robot.x, current_robot.y), x))
+    for ore in ores:
+        if ore not in get_all_robots_targets(robots):
+            return ore
+    random_target = None
+    while random_target is None or random_target in set_radar_locations:
+        random_target = (random.randint(0, board.width - 1), random.randint(0, board.height - 1))
+    return random_target
+
+
+
+set_radar_locations = [(2, 1), (12, 2), (12, 12), (4, 2), (4, 12), (15, 7), (19, 2), (19, 12), (23, 7), (27, 2), (27, 12), (27, 7)]
+placed_radars = []
 
 def user_script(board, robots, turn_count, player):
     """
@@ -59,9 +91,8 @@ def user_script(board, robots, turn_count, player):
     at the start of each turn. It must return a list of strings for each robot.
     Returns a list of actions for each robot and each robot's target.
     """
-    set_radar_locations = [(2, 1), (12, 2), (12, 12), (4, 2), (4, 12), (15, 7), (19, 2), (19, 12), (23, 7), (27, 2),
-                           (27, 12), (27, 7)]
-    placed_radars = []
+
+
 
     game.radars = board.get_radars()
     game.traps = board.get_traps()
@@ -84,7 +115,7 @@ def user_script(board, robots, turn_count, player):
                 targets.append(next_radar_location)
                 continue
 
-        if player.radar_cooldown < 1:
+        if player.radar_cooldown < 1 :
             closest_robot = game.get_closest_to_hq(board)
             robots_transporting_radar = []
             while closest_robot.current_item and closest_robot.current_item.type == "radar":
@@ -109,12 +140,8 @@ def user_script(board, robots, turn_count, player):
                 targets.append(robot.target)
                 continue
         else:
-            #get random target not from radar locations
-            random_target = None
-            while random_target is None or random_target in set_radar_locations:
-                random_target = (random.randint(0, board.width-1), random.randint(0, board.height-1))
             actions.append("move")
-            targets.append(random_target)
+            targets.append(find_next_ore(robot, robots, board))
             continue
     #print(actions, targets)
     return actions, targets

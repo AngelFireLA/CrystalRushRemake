@@ -40,12 +40,12 @@ while running:
             game.turn += 1
             for player in game.players:
                 player.reduce_cooldowns()
-            user_actions, robot_targets = user_script.user_script(board=game.construct_player_board(player1), robots=[robot.copy() for robot in player1.robots], turn_count=game.turn, player=player1.copy_empty())
-            for i in range(len(robot_targets)):
-                player1.robots[i].target = robot_targets[i]
-            for i in range(len(user_actions)):
-                if user_actions[i] is not None:
-                    game.process_action(user_actions[i], player1.robots[i], player1)
+                user_actions, robot_targets = user_script.user_script(board=game.construct_player_board(player), robots=[robot.copy() for robot in player.robots], turn_count=game.turn, player=player.copy_empty())
+                for i in range(len(robot_targets)):
+                    player.robots[i].target = robot_targets[i]
+                for i in range(len(user_actions)):
+                    if user_actions[i] is not None:
+                        game.process_action(user_actions[i], player.robots[i], player)
             # print(player1.score)
             # for r in player1.robots:
             #     print(r.id, r.current_item)
